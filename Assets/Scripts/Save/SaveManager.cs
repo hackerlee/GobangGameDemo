@@ -12,6 +12,7 @@ public static class SaveManager
     private const string KeyAIPiece = "CurrentGame_AIPiece";
     private const string KeyIsGameOver = "CurrentGame_IsGameOver";
     private const string KeyFirstPiece = "CurrentGame_FirstPiece";
+    private const string KeyPlayerStartsFirst = "CurrentGame_PlayerStartsFirst";
     private const string KeyMoveHistory = "CurrentGame_MoveHistory";
 
     private const string KeyRecordTotal = "Record_TotalGames";
@@ -33,6 +34,7 @@ public static class SaveManager
         PlayerPrefs.SetInt(KeyAIPiece, data.aiPiece);
         PlayerPrefs.SetInt(KeyIsGameOver, data.isGameOver ? 1 : 0);
         PlayerPrefs.SetInt(KeyFirstPiece, data.firstPiece);
+        PlayerPrefs.SetInt(KeyPlayerStartsFirst, data.playerStartsFirst ? 1 : 0);
         PlayerPrefs.SetString(KeyMoveHistory, SerializeHistory(data.moveHistory));
         PlayerPrefs.Save();
     }
@@ -54,6 +56,7 @@ public static class SaveManager
                 aiPiece = PlayerPrefs.GetInt(KeyAIPiece, 2),
                 isGameOver = PlayerPrefs.GetInt(KeyIsGameOver, 0) == 1,
                 firstPiece = PlayerPrefs.GetInt(KeyFirstPiece, 1),
+                playerStartsFirst = PlayerPrefs.GetInt(KeyPlayerStartsFirst, -1) == 1,
                 moveHistory = DeserializeHistory(PlayerPrefs.GetString(KeyMoveHistory, string.Empty))
             };
 
@@ -84,6 +87,7 @@ public static class SaveManager
         PlayerPrefs.DeleteKey(KeyAIPiece);
         PlayerPrefs.DeleteKey(KeyIsGameOver);
         PlayerPrefs.DeleteKey(KeyFirstPiece);
+        PlayerPrefs.DeleteKey(KeyPlayerStartsFirst);
         PlayerPrefs.DeleteKey(KeyMoveHistory);
         PlayerPrefs.Save();
     }

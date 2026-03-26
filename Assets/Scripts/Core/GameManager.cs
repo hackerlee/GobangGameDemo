@@ -15,6 +15,7 @@ public class GameManager : MonoBehaviour
     private bool isInputReady;
     private bool isAIThinking;
     private bool hasInitializedGame;
+    private bool playerStartsFirst;
     private int playerPiece;
     private int aiPiece;
     private int firstPiece;
@@ -65,7 +66,8 @@ public class GameManager : MonoBehaviour
         isAIThinking = false;
         hasInitializedGame = true;
 
-        bool playerGoesFirst = Random.Range(0, 2) == 0;
+        bool playerGoesFirst = Random.value < 0.5f;
+        playerStartsFirst = playerGoesFirst;
         firstPiece = 1;
         playerPiece = playerGoesFirst ? 1 : 2;
         aiPiece = playerPiece == 1 ? 2 : 1;
@@ -103,9 +105,15 @@ public class GameManager : MonoBehaviour
         aiPiece = data.aiPiece;
         firstPiece = data.firstPiece;
         isGameOver = data.isGameOver;
+        playerStartsFirst = data.playerStartsFirst;
 
         turnManager.Initialize(data.isPlayerTurn);
         boardManager.LoadBoardFromData(data.flatBoard, new System.Collections.Generic.List<MoveData>(data.moveHistory), HandlePlayerMove);
+
+        if (boardManager.MoveHistory.Count == 0)
+        {
+            playerStartsFirst = playerPiece == firstPiece;
+        }
 
         if (gameUI != null)
         {
@@ -152,6 +160,7 @@ public class GameManager : MonoBehaviour
         }
 
         turnManager.SwitchTurn();
+        SaveSnapshot();
         UpdateUIStates();
         StartCoroutine(HandleAIMove());
     }
@@ -192,6 +201,7 @@ public class GameManager : MonoBehaviour
         }
 
         turnManager.SwitchTurn();
+        SaveSnapshot();
         UpdateUIStates();
         isAIThinking = false;
         UpdateBoardInputState();
@@ -289,7 +299,7 @@ public class GameManager : MonoBehaviour
         int remaining = boardManager.MoveHistory.Count;
         if (remaining == 0)
         {
-            nowPlayerTurn = playerPiece == firstPiece;
+            nowPlayerTurn = playerStartsFirst;
         }
         else
         {
@@ -332,6 +342,7 @@ public class GameManager : MonoBehaviour
             aiPiece = aiPiece,
             isGameOver = isGameOver,
             firstPiece = firstPiece,
+            playerStartsFirst = playerStartsFirst,
             moveHistory = new System.Collections.Generic.List<MoveData>(boardManager.MoveHistory)
         };
 

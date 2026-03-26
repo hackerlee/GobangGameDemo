@@ -10,6 +10,7 @@ public class GameData
     public int aiPiece;
     public bool isGameOver;
     public int firstPiece;
+    public bool playerStartsFirst;
     public List<MoveData> moveHistory;
 
     public GameData()
