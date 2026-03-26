@@ -79,7 +79,15 @@ public class GameUI : MonoBehaviour
         button.onClick.RemoveAllListeners();
         if (callback != null)
         {
-            button.onClick.AddListener(() => callback.Invoke());
+            button.onClick.AddListener(() =>
+            {
+                if (AudioManager.Instance != null)
+                {
+                    AudioManager.Instance.PlayButtonClick();
+                }
+
+                callback.Invoke();
+            });
         }
     }
 }

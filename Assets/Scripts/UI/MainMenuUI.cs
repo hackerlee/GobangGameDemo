@@ -16,6 +16,11 @@ public class MainMenuUI : MonoBehaviour
 
     private void Start()
     {
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlayBgmIfNeeded();
+        }
+
         BindButtons();
         RefreshMenuState();
         CloseHistoryPanel();
@@ -113,6 +118,14 @@ public class MainMenuUI : MonoBehaviour
         }
 
         button.onClick.RemoveAllListeners();
-        button.onClick.AddListener(() => callback.Invoke());
+        button.onClick.AddListener(() =>
+        {
+            if (AudioManager.Instance != null)
+            {
+                AudioManager.Instance.PlayButtonClick();
+            }
+
+            callback.Invoke();
+        });
     }
 }

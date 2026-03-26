@@ -20,6 +20,11 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlayBgmIfNeeded();
+        }
+
         if (boardManager == null)
         {
             boardManager = FindObjectOfType<BoardManager>();
@@ -126,6 +131,11 @@ public class GameManager : MonoBehaviour
             return;
         }
 
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlayPlacePiece();
+        }
+
         if (CheckGameAfterMove(x, y, playerPiece, true))
         {
             return;
@@ -153,6 +163,11 @@ public class GameManager : MonoBehaviour
         if (!boardManager.PlacePiece(aiMove.x, aiMove.y, aiPiece, true))
         {
             yield break;
+        }
+
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlayPlacePiece();
         }
 
         if (CheckGameAfterMove(aiMove.x, aiMove.y, aiPiece, false))
