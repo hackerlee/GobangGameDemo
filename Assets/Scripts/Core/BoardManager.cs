@@ -14,14 +14,13 @@ public class BoardManager : MonoBehaviour
     private int[,] board = new int[BoardSize, BoardSize];
     private readonly List<MoveData> moveHistory = new List<MoveData>();
     private readonly List<GameObject> spawnedPieces = new List<GameObject>();
-    private readonly List<GameObject> spawnedCells = new List<GameObject>();
     private readonly BoardCell[,] boardCells = new BoardCell[BoardSize, BoardSize];
 
     public IReadOnlyList<MoveData> MoveHistory => moveHistory;
 
     public void InitializeBoard(System.Action<int, int> onCellClicked)
     {
-        ClearAllBoardVisuals();
+        ClearSpawnedPiecesOnly();
 
         board = new int[BoardSize, BoardSize];
         moveHistory.Clear();
@@ -179,14 +178,17 @@ public class BoardManager : MonoBehaviour
             return;
         }
 
-        ClearCellVisualsOnly();
+        // 只在首次创建棋盘格时清理容器，避免后续对局中增删格子导致索引变化。
+        for (int i = boardRoot.childCount - 1; i >= 0; i--)
+        {
+            Destroy(boardRoot.GetChild(i).gameObject);
+        }
 
         for (int y = 0; y < BoardSize; y++)
         {
             for (int x = 0; x < BoardSize; x++)
             {
                 GameObject cellObj = Instantiate(cellPrefab, boardRoot);
-                spawnedCells.Add(cellObj);
                 BoardCell cell = cellObj.GetComponent<BoardCell>();
                 if (cell == null)
                 {
@@ -264,33 +266,10 @@ public class BoardManager : MonoBehaviour
             return;
         }
 
-        GameObject pieceObj = Instantiate(prefab, boardRoot);
+        Transform parent = boardCells[x, y] != null ? boardCells[x, y].transform : boardRoot;
+        GameObject pieceObj = Instantiate(prefab, parent, false);
         pieceObj.name = $"Piece_{x}_{y}_{piece}";
-        pieceObj.transform.SetSiblingIndex(y * BoardSize + x);
         spawnedPieces.Add(pieceObj);
-    }
-
-    private void ClearAllBoardVisuals()
-    {
-        if (boardRoot == null)
-        {
-            return;
-        }
-
-        for (int i = boardRoot.childCount - 1; i >= 0; i--)
-        {
-            Destroy(boardRoot.GetChild(i).gameObject);
-        }
-
-        spawnedPieces.Clear();
-        spawnedCells.Clear();
-        for (int y = 0; y < BoardSize; y++)
-        {
-            for (int x = 0; x < BoardSize; x++)
-            {
-                boardCells[x, y] = null;
-            }
-        }
     }
 
     private void ClearSpawnedPiecesOnly()
@@ -304,26 +283,6 @@ public class BoardManager : MonoBehaviour
         }
 
         spawnedPieces.Clear();
-    }
-
-    private void ClearCellVisualsOnly()
-    {
-        for (int i = spawnedCells.Count - 1; i >= 0; i--)
-        {
-            if (spawnedCells[i] != null)
-            {
-                Destroy(spawnedCells[i]);
-            }
-        }
-
-        spawnedCells.Clear();
-        for (int y = 0; y < BoardSize; y++)
-        {
-            for (int x = 0; x < BoardSize; x++)
-            {
-                boardCells[x, y] = null;
-            }
-        }
     }
 
     private bool IsInside(int x, int y)
