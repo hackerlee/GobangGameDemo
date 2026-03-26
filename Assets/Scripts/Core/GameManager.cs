@@ -12,6 +12,8 @@ public class GameManager : MonoBehaviour
     private readonly GomokuAI aiController = new GomokuAI();
 
     private bool isGameOver;
+    private bool isInputReady;
+    private bool isAIThinking;
     private int playerPiece;
     private int aiPiece;
     private int firstPiece;
@@ -59,6 +61,7 @@ public class GameManager : MonoBehaviour
     {
         SaveManager.ClearCurrentGame();
         isGameOver = false;
+        isAIThinking = false;
 
         bool playerGoesFirst = Random.Range(0, 2) == 0;
         firstPiece = 1;
@@ -77,6 +80,7 @@ public class GameManager : MonoBehaviour
         }
 
         SaveSnapshot();
+        BeginInputGate();
 
         if (!turnManager.IsPlayerTurn)
         {
@@ -109,7 +113,8 @@ public class GameManager : MonoBehaviour
             gameUI.SetUndoInteractable(boardManager.MoveHistory.Count > 0);
         }
 
-        boardManager.SetCellsInteractable(turnManager.IsPlayerTurn);
+        isAIThinking = false;
+        BeginInputGate();
 
         if (!turnManager.IsPlayerTurn)
         {
@@ -121,7 +126,7 @@ public class GameManager : MonoBehaviour
 
     public void HandlePlayerMove(int x, int y)
     {
-        if (isGameOver || !turnManager.IsPlayerTurn)
+        if (isGameOver || !isInputReady || isAIThinking || !turnManager.IsPlayerTurn)
         {
             return;
         }
@@ -154,7 +159,8 @@ public class GameManager : MonoBehaviour
             yield break;
         }
 
-        boardManager.SetCellsInteractable(false);
+        isAIThinking = true;
+        UpdateBoardInputState();
         yield return new WaitForSeconds(0.2f);
 
         int[,] boardCopy = boardManager.GetBoardCopy();
@@ -162,6 +168,8 @@ public class GameManager : MonoBehaviour
 
         if (!boardManager.PlacePiece(aiMove.x, aiMove.y, aiPiece, true))
         {
+            isAIThinking = false;
+            UpdateBoardInputState();
             yield break;
         }
 
@@ -172,13 +180,16 @@ public class GameManager : MonoBehaviour
 
         if (CheckGameAfterMove(aiMove.x, aiMove.y, aiPiece, false))
         {
+            isAIThinking = false;
+            UpdateBoardInputState();
             yield break;
         }
 
         turnManager.SwitchTurn();
         SaveSnapshot();
         UpdateUIStates();
-        boardManager.SetCellsInteractable(true);
+        isAIThinking = false;
+        UpdateBoardInputState();
     }
 
     public bool CheckGameAfterMove(int x, int y, int piece, bool movedByPlayer)
@@ -232,7 +243,7 @@ public class GameManager : MonoBehaviour
             gameUI.SetUndoInteractable(false);
         }
 
-        boardManager.SetCellsInteractable(false);
+        UpdateBoardInputState();
     }
 
     public void UndoLastRound()
@@ -276,7 +287,7 @@ public class GameManager : MonoBehaviour
         turnManager.SetPlayerTurn(nowPlayerTurn);
         SaveSnapshot();
         UpdateUIStates();
-        boardManager.SetCellsInteractable(turnManager.IsPlayerTurn);
+        UpdateBoardInputState();
     }
 
     public void ReturnToMenu()
@@ -309,6 +320,32 @@ public class GameManager : MonoBehaviour
 
         gameUI.SetTurnText(turnManager.IsPlayerTurn);
         gameUI.SetUndoInteractable(!isGameOver && boardManager.MoveHistory.Count > 0);
+    }
+
+    private void BeginInputGate()
+    {
+        isInputReady = false;
+        UpdateBoardInputState();
+        StartCoroutine(WaitForPointerReleaseThenEnableInput());
+    }
+
+    private IEnumerator WaitForPointerReleaseThenEnableInput()
+    {
+        yield return null;
+        while (Input.GetMouseButton(0) || Input.touchCount > 0)
+        {
+            yield return null;
+        }
+
+        yield return null;
+        isInputReady = true;
+        UpdateBoardInputState();
+    }
+
+    private void UpdateBoardInputState()
+    {
+        bool canInteract = isInputReady && !isGameOver && !isAIThinking && turnManager.IsPlayerTurn;
+        boardManager.SetCellsInteractable(canInteract);
     }
 }
 
