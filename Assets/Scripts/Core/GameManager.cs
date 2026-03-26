@@ -14,6 +14,7 @@ public class GameManager : MonoBehaviour
     private bool isGameOver;
     private bool isInputReady;
     private bool isAIThinking;
+    private bool hasInitializedGame;
     private int playerPiece;
     private int aiPiece;
     private int firstPiece;
@@ -62,6 +63,7 @@ public class GameManager : MonoBehaviour
         SaveManager.ClearCurrentGame();
         isGameOver = false;
         isAIThinking = false;
+        hasInitializedGame = true;
 
         bool playerGoesFirst = Random.Range(0, 2) == 0;
         firstPiece = 1;
@@ -109,6 +111,7 @@ public class GameManager : MonoBehaviour
         }
 
         isAIThinking = false;
+        hasInitializedGame = true;
         BeginInputGate();
 
         return true;
@@ -290,7 +293,21 @@ public class GameManager : MonoBehaviour
 
     public void ReturnToMenu()
     {
+        SaveProgressIfPossible();
         SceneManager.LoadScene(MainMenuSceneName);
+    }
+
+    private void OnApplicationPause(bool pauseStatus)
+    {
+        if (pauseStatus)
+        {
+            SaveProgressIfPossible();
+        }
+    }
+
+    private void OnApplicationQuit()
+    {
+        SaveProgressIfPossible();
     }
 
     private void SaveSnapshot()
@@ -307,6 +324,16 @@ public class GameManager : MonoBehaviour
         };
 
         SaveManager.SaveCurrentGame(data);
+    }
+
+    private void SaveProgressIfPossible()
+    {
+        if (!hasInitializedGame || boardManager == null)
+        {
+            return;
+        }
+
+        SaveSnapshot();
     }
 
     private void UpdateUIStates()
