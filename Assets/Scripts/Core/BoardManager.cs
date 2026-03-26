@@ -14,6 +14,7 @@ public class BoardManager : MonoBehaviour
     private int[,] board = new int[BoardSize, BoardSize];
     private readonly List<MoveData> moveHistory = new List<MoveData>();
     private readonly List<GameObject> spawnedPieces = new List<GameObject>();
+    private readonly List<GameObject> spawnedCells = new List<GameObject>();
     private readonly BoardCell[,] boardCells = new BoardCell[BoardSize, BoardSize];
 
     public IReadOnlyList<MoveData> MoveHistory => moveHistory;
@@ -165,7 +166,7 @@ public class BoardManager : MonoBehaviour
             return;
         }
 
-        if (boardRoot.childCount == BoardSize * BoardSize && HasAllCells())
+        if (HasAllCells())
         {
             for (int y = 0; y < BoardSize; y++)
             {
@@ -178,16 +179,14 @@ public class BoardManager : MonoBehaviour
             return;
         }
 
-        for (int i = boardRoot.childCount - 1; i >= 0; i--)
-        {
-            Destroy(boardRoot.GetChild(i).gameObject);
-        }
+        ClearCellVisualsOnly();
 
         for (int y = 0; y < BoardSize; y++)
         {
             for (int x = 0; x < BoardSize; x++)
             {
                 GameObject cellObj = Instantiate(cellPrefab, boardRoot);
+                spawnedCells.Add(cellObj);
                 BoardCell cell = cellObj.GetComponent<BoardCell>();
                 if (cell == null)
                 {
@@ -207,6 +206,11 @@ public class BoardManager : MonoBehaviour
             for (int x = 0; x < BoardSize; x++)
             {
                 if (boardCells[x, y] == null)
+                {
+                    return false;
+                }
+
+                if (boardCells[x, y].gameObject == null)
                 {
                     return false;
                 }
@@ -279,6 +283,14 @@ public class BoardManager : MonoBehaviour
         }
 
         spawnedPieces.Clear();
+        spawnedCells.Clear();
+        for (int y = 0; y < BoardSize; y++)
+        {
+            for (int x = 0; x < BoardSize; x++)
+            {
+                boardCells[x, y] = null;
+            }
+        }
     }
 
     private void ClearSpawnedPiecesOnly()
@@ -292,6 +304,26 @@ public class BoardManager : MonoBehaviour
         }
 
         spawnedPieces.Clear();
+    }
+
+    private void ClearCellVisualsOnly()
+    {
+        for (int i = spawnedCells.Count - 1; i >= 0; i--)
+        {
+            if (spawnedCells[i] != null)
+            {
+                Destroy(spawnedCells[i]);
+            }
+        }
+
+        spawnedCells.Clear();
+        for (int y = 0; y < BoardSize; y++)
+        {
+            for (int x = 0; x < BoardSize; x++)
+            {
+                boardCells[x, y] = null;
+            }
+        }
     }
 
     private bool IsInside(int x, int y)
