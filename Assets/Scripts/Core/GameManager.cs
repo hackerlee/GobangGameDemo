@@ -81,11 +81,6 @@ public class GameManager : MonoBehaviour
 
         SaveSnapshot();
         BeginInputGate();
-
-        if (!turnManager.IsPlayerTurn)
-        {
-            StartCoroutine(HandleAIMove());
-        }
     }
 
     public bool LoadFromSave()
@@ -115,11 +110,6 @@ public class GameManager : MonoBehaviour
 
         isAIThinking = false;
         BeginInputGate();
-
-        if (!turnManager.IsPlayerTurn)
-        {
-            StartCoroutine(HandleAIMove());
-        }
 
         return true;
     }
@@ -348,6 +338,11 @@ public class GameManager : MonoBehaviour
         yield return null;
         isInputReady = true;
         UpdateBoardInputState();
+
+        if (!isGameOver && !turnManager.IsPlayerTurn)
+        {
+            StartCoroutine(HandleAIMove());
+        }
     }
 
     private void UpdateBoardInputState()
