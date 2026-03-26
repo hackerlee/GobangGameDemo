@@ -88,7 +88,7 @@ public class GameManager : MonoBehaviour
 
         if (!turnManager.IsPlayerTurn)
         {
-            StartCoroutine(HandleAIMove());
+            StartCoroutine(HandleAIMove(true));
         }
     }
 
@@ -106,6 +106,21 @@ public class GameManager : MonoBehaviour
         firstPiece = data.firstPiece;
         isGameOver = data.isGameOver;
         playerStartsFirst = data.playerStartsFirst;
+
+        if (playerPiece != 1 && playerPiece != 2)
+        {
+            playerPiece = 1;
+        }
+
+        if (aiPiece != 1 && aiPiece != 2)
+        {
+            aiPiece = playerPiece == 1 ? 2 : 1;
+        }
+
+        if (aiPiece == playerPiece)
+        {
+            aiPiece = playerPiece == 1 ? 2 : 1;
+        }
 
         turnManager.Initialize(data.isPlayerTurn);
         boardManager.LoadBoardFromData(data.flatBoard, new System.Collections.Generic.List<MoveData>(data.moveHistory), HandlePlayerMove);
@@ -129,7 +144,7 @@ public class GameManager : MonoBehaviour
 
         if (!isGameOver && !turnManager.IsPlayerTurn)
         {
-            StartCoroutine(HandleAIMove());
+            StartCoroutine(HandleAIMove(false));
         }
 
         return true;
@@ -162,10 +177,10 @@ public class GameManager : MonoBehaviour
         turnManager.SwitchTurn();
         SaveSnapshot();
         UpdateUIStates();
-        StartCoroutine(HandleAIMove());
+        StartCoroutine(HandleAIMove(true));
     }
 
-    public IEnumerator HandleAIMove()
+    public IEnumerator HandleAIMove(bool shouldSaveProgress)
     {
         if (isGameOver)
         {
@@ -186,7 +201,10 @@ public class GameManager : MonoBehaviour
             yield break;
         }
 
-        SaveSnapshot();
+        if (shouldSaveProgress)
+        {
+            SaveSnapshot();
+        }
 
         if (AudioManager.Instance != null)
         {
@@ -201,7 +219,10 @@ public class GameManager : MonoBehaviour
         }
 
         turnManager.SwitchTurn();
-        SaveSnapshot();
+        if (shouldSaveProgress)
+        {
+            SaveSnapshot();
+        }
         UpdateUIStates();
         isAIThinking = false;
         UpdateBoardInputState();
