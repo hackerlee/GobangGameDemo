@@ -1,12 +1,14 @@
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 
-public class BoardCell : MonoBehaviour
+public class BoardCell : MonoBehaviour, IPointerDownHandler
 {
     [SerializeField] private Button clickButton;
     private int x;
     private int y;
     private System.Action<int, int> onClick;
+    private bool isInteractable = true;
 
     public void Setup(int cellX, int cellY, System.Action<int, int> clickCallback)
     {
@@ -22,20 +24,30 @@ public class BoardCell : MonoBehaviour
         if (clickButton != null)
         {
             clickButton.onClick.RemoveAllListeners();
-            clickButton.onClick.AddListener(NotifyClick);
         }
     }
 
     public void SetInteractable(bool interactable)
     {
+        isInteractable = interactable;
         if (clickButton != null)
         {
             clickButton.interactable = interactable;
         }
     }
 
-    private void NotifyClick()
+    public void OnPointerDown(PointerEventData eventData)
     {
+        if (!isInteractable)
+        {
+            return;
+        }
+
+        if (eventData.button != PointerEventData.InputButton.Left)
+        {
+            return;
+        }
+
         if (onClick != null)
         {
             onClick.Invoke(x, y);
