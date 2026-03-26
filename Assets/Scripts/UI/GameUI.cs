@@ -25,7 +25,7 @@ public class GameUI : MonoBehaviour
 
     public void SetPlayerInfo(int playerPiece)
     {
-        string pieceText = playerPiece == 1 ? "黑子" : "白子";
+        string pieceText = playerPiece == 1 ? "白子" : "黑子";
         if (playerInfoText != null)
         {
             playerInfoText.text = "你执: " + pieceText;

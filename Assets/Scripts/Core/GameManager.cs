@@ -15,6 +15,7 @@ public class GameManager : MonoBehaviour
     private bool isInputReady;
     private bool isAIThinking;
     private bool hasInitializedGame;
+    private bool skipAutoAISaveOnce;
     private bool playerStartsFirst;
     private int playerPiece;
     private int aiPiece;
@@ -74,6 +75,7 @@ public class GameManager : MonoBehaviour
 
         turnManager.Initialize(playerGoesFirst);
         boardManager.InitializeBoard(HandlePlayerMove);
+        skipAutoAISaveOnce = false;
 
         if (gameUI != null)
         {
@@ -85,11 +87,6 @@ public class GameManager : MonoBehaviour
 
         SaveSnapshot();
         BeginInputGate();
-
-        if (!turnManager.IsPlayerTurn)
-        {
-            StartCoroutine(HandleAIMove(true));
-        }
     }
 
     public bool LoadFromSave()
@@ -124,6 +121,7 @@ public class GameManager : MonoBehaviour
 
         turnManager.Initialize(data.isPlayerTurn);
         boardManager.LoadBoardFromData(data.flatBoard, new System.Collections.Generic.List<MoveData>(data.moveHistory), HandlePlayerMove);
+        skipAutoAISaveOnce = true;
 
         if (boardManager.MoveHistory.Count == 0)
         {
@@ -141,11 +139,6 @@ public class GameManager : MonoBehaviour
         isAIThinking = false;
         hasInitializedGame = true;
         BeginInputGate();
-
-        if (!isGameOver && !turnManager.IsPlayerTurn)
-        {
-            StartCoroutine(HandleAIMove(false));
-        }
 
         return true;
     }
@@ -377,6 +370,11 @@ public class GameManager : MonoBehaviour
             return;
         }
 
+        if (boardManager.MoveHistory.Count == 0)
+        {
+            return;
+        }
+
         SaveSnapshot();
     }
 
@@ -393,8 +391,29 @@ public class GameManager : MonoBehaviour
 
     private void BeginInputGate()
     {
+        isInputReady = false;
+        UpdateBoardInputState();
+        StartCoroutine(EnableInputAfterPointerReleased());
+    }
+
+    private IEnumerator EnableInputAfterPointerReleased()
+    {
+        yield return null;
+        while (Input.GetMouseButton(0) || Input.touchCount > 0)
+        {
+            yield return null;
+        }
+
+        yield return new WaitForSeconds(0.1f);
         isInputReady = true;
         UpdateBoardInputState();
+
+        if (!isGameOver && !turnManager.IsPlayerTurn && !isAIThinking)
+        {
+            bool shouldSave = !skipAutoAISaveOnce;
+            skipAutoAISaveOnce = false;
+            StartCoroutine(HandleAIMove(shouldSave));
+        }
     }
 
     private void UpdateBoardInputState()
