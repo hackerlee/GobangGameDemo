@@ -12,6 +12,8 @@ public class AudioManager : MonoBehaviour
     [SerializeField] private AudioClip bgmClip;
     [SerializeField] private AudioClip buttonClickClip;
     [SerializeField] private AudioClip placePieceClip;
+    [SerializeField] private AudioClip winClip;
+    [SerializeField] private AudioClip loseClip;
 
     [Header("Volume")]
     [Range(0f, 1f)] [SerializeField] private float bgmVolume = 0.6f;
@@ -57,6 +59,16 @@ public class AudioManager : MonoBehaviour
     public void PlayPlacePiece()
     {
         PlaySfx(placePieceClip);
+    }
+
+    public void PlayWin()
+    {
+        PlaySfx(winClip);
+    }
+
+    public void PlayLose()
+    {
+        PlaySfx(loseClip);
     }
 
     private void PlaySfx(AudioClip clip)

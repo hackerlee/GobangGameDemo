@@ -223,10 +223,18 @@ public class GameManager : MonoBehaviour
             case GameResult.PlayerWin:
                 record.playerWins += 1;
                 resultText = "你赢了！";
+                if (AudioManager.Instance != null)
+                {
+                    AudioManager.Instance.PlayWin();
+                }
                 break;
             case GameResult.AIWin:
                 record.aiWins += 1;
                 resultText = "机器人获胜";
+                if (AudioManager.Instance != null)
+                {
+                    AudioManager.Instance.PlayLose();
+                }
                 break;
             default:
                 record.draws += 1;
